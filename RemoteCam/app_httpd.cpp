@@ -1,16 +1,8 @@
 #include "esp_http_server.h"
 #include "esp_timer.h"
 #include "esp_camera.h"
-#include "img_converters.h"
 #include "camera_index.h"
 #include "Arduino.h"
-
-#include "fb_gfx.h"
-#include "fd_forward.h"
-#include "fr_forward.h"
-
-
-#define ENROLL_CONFIRM_TIMES 5
 
 /* Empty handle to esp_http_server */
 httpd_handle_t server = NULL;
@@ -59,7 +51,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
     Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
     return res;
 }
-
 
 /* URI handler structure for GET /uri */
 httpd_uri_t uri_get = {
