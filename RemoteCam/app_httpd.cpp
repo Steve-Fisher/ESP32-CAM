@@ -11,7 +11,6 @@
 
 
 #define ENROLL_CONFIRM_TIMES 5
-#define FACE_ID_SAVE_NUMBER 7
 
 /* Empty handle to esp_http_server */
 httpd_handle_t server = NULL;
@@ -35,7 +34,6 @@ static const char* _STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\n\r\n";
 
 static ra_filter_t ra_filter;
-httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
 
 static mtmn_config_t mtmn_config = {0};
