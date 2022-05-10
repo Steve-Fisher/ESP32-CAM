@@ -15,20 +15,6 @@
 /* Empty handle to esp_http_server */
 httpd_handle_t server = NULL;
 
-typedef struct {
-        size_t size; //number of values used for filtering
-        size_t index; //current value index
-        size_t count; //value count
-        int sum;
-        int * values; //array to be filled with values
-} ra_filter_t;
-
-typedef struct {
-        httpd_req_t *req;
-        size_t len;
-} jpg_chunking_t;
-
-static ra_filter_t ra_filter;
 httpd_handle_t camera_httpd = NULL;
 
 /* Our URI handler function to be called during GET /uri request */
