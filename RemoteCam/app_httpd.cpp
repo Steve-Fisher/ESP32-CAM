@@ -8,15 +8,6 @@
 httpd_handle_t server = NULL;
 
 /* Our URI handler function to be called during GET /uri request */
-static esp_err_t get_handler(httpd_req_t *req)
-{
-    /* Send a simple response */
-    const char resp[] = "URI GET Response - ACT";
-    Serial.println("Basic response");
-    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
-
 static esp_err_t capture_handler(httpd_req_t *req){
     camera_fb_t* fb = NULL;
     esp_err_t res = ESP_OK;
@@ -45,15 +36,8 @@ static esp_err_t capture_handler(httpd_req_t *req){
 }
 
 /* URI handler structure for GET /uri */
-httpd_uri_t uri_get = {
-    .uri      = "/",
-    .method   = HTTP_GET,
-    .handler  = get_handler,
-    .user_ctx = NULL
-};
-
 httpd_uri_t capture_uri = {
-    .uri       = "/capture",
+    .uri       = "/",
     .method    = HTTP_GET,
     .handler   = capture_handler,
     .user_ctx  = NULL
@@ -70,7 +54,6 @@ httpd_handle_t startCameraServer(void)
     /* Start the httpd server */
     if (httpd_start(&server, &config) == ESP_OK) {
         /* Register URI handlers */
-        httpd_register_uri_handler(server, &uri_get);
         httpd_register_uri_handler(server, &capture_uri);
     }
     /* If server failed to start, handle will be NULL */

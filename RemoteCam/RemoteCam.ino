@@ -54,6 +54,10 @@ void setup() {
   // set frame size
   s->set_framesize(s, FRAMESIZE_UXGA);
 
+  if (!s) {
+    Serial.println("Failed to get pointer s");
+  }
+
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
