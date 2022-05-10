@@ -35,7 +35,6 @@ static mtmn_config_t mtmn_config = {0};
 static int8_t detection_enabled = 0;
 static int8_t recognition_enabled = 0;
 static int8_t is_enrolling = 0;
-static face_id_list id_list = {0};
 
 static ra_filter_t * ra_filter_init(ra_filter_t * filter, size_t sample_size){
     memset(filter, 0, sizeof(ra_filter_t));
@@ -161,42 +160,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
         Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
         return res;
     }
-
-    dl_matrix3du_t *image_matrix = dl_matrix3du_alloc(1, fb->width, fb->height, 3);
-    if (!image_matrix) {
-        esp_camera_fb_return(fb);
-        Serial.println("dl_matrix3du_alloc failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    out_buf = image_matrix->item;
-    out_len = fb->width * fb->height * 3;
-    out_width = fb->width;
-    out_height = fb->height;
-
-    s = fmt2rgb888(fb->buf, fb->len, fb->format, out_buf);
-    esp_camera_fb_return(fb);
-    if(!s){
-        dl_matrix3du_free(image_matrix);
-        Serial.println("to rgb888 failed");
-        httpd_resp_send_500(req);
-        return ESP_FAIL;
-    }
-
-    box_array_t *net_boxes = face_detect(image_matrix, &mtmn_config);
-
-    jpg_chunking_t jchunk = {req, 0};
-    s = fmt2jpg_cb(out_buf, out_len, out_width, out_height, PIXFORMAT_RGB888, 90, jpg_encode_stream, &jchunk);
-    dl_matrix3du_free(image_matrix);
-    if(!s){
-        Serial.println("JPEG compression failed");
-        return ESP_FAIL;
-    }
-
-    int64_t fr_end = esp_timer_get_time();
-    Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
-    return res;
 }
 
 
