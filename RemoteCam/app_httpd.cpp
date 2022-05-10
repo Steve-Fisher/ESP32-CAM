@@ -7,22 +7,18 @@
 /* Empty handle to esp_http_server */
 httpd_handle_t server = NULL;
 
-httpd_handle_t camera_httpd = NULL;
-
 /* Our URI handler function to be called during GET /uri request */
-esp_err_t get_handler(httpd_req_t *req)
+static esp_err_t get_handler(httpd_req_t *req)
 {
     /* Send a simple response */
     const char resp[] = "URI GET Response - ACT";
-//    sensor_t * s = esp_camera_sensor_get();
     Serial.println("Basic response");
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-
 static esp_err_t capture_handler(httpd_req_t *req){
-    camera_fb_t * fb = NULL;
+    camera_fb_t* fb = NULL;
     esp_err_t res = ESP_OK;
     int64_t fr_start = esp_timer_get_time();
 
@@ -36,10 +32,6 @@ static esp_err_t capture_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "image/jpeg");
     httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-
-    size_t out_len, out_width, out_height;
-    uint8_t * out_buf;
-    bool s;
 
     size_t fb_len = 0;
 

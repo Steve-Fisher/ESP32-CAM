@@ -51,8 +51,8 @@ void setup() {
 
   sensor_t* s = esp_camera_sensor_get();
   
-  // drop down frame size for higher initial frame rate
-  s->set_framesize(s, FRAMESIZE_QVGA);
+  // set frame size
+  s->set_framesize(s, FRAMESIZE_UXGA);
 
   WiFi.begin(ssid, password);
 
