@@ -86,7 +86,14 @@ void setup()
     return;
   }
 
+  sensor_t* s = esp_camera_sensor_get();
+  
+  s->set_whitebal(s, 1);
+  s->set_awb_gain(s, 1);
+  s->set_wb_mode(s, 0);
+
   //initialize & mount SD card
+//  if(!SD_MMC.begin()) // Original
   if(!SD_MMC.begin("/sdcard", true)) // Need the parameters to stop the flash on GPIO4.  See https://randomnerdtutorials.com/esp32-cam-ai-thinker-pinout/
   {
     Serial.println("Card Mount Failed");
