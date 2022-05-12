@@ -49,7 +49,7 @@ void setup()
 
   pinMode(4, INPUT);              //GPIO for LED flash
   digitalWrite(4, LOW);
-  rtc_gpio_hold_dis(GPIO_NUM_4);  //diable pin hold if it was enabled before sleeping
+  rtc_gpio_hold_dis(GPIO_NUM_4);  //disable pin hold if it was enabled before sleeping
   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -80,21 +80,17 @@ void setup()
 
   //initialize camera
   esp_err_t err = esp_camera_init(&config);
+  delay(3000);  // Essential to give the camera time to properly initialise.  Otherwise the white balance is all wrong!
   if (err != ESP_OK) 
   {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
-  sensor_t* s = esp_camera_sensor_get();
-  
-  s->set_whitebal(s, 1);
-  s->set_awb_gain(s, 1);
-  s->set_wb_mode(s, 0);
-
   //initialize & mount SD card
 //  if(!SD_MMC.begin()) // Original
   if(!SD_MMC.begin("/sdcard", true)) // Need the parameters to stop the flash on GPIO4.  See https://randomnerdtutorials.com/esp32-cam-ai-thinker-pinout/
+  // There may be an issue with GPIO4 pin with causes the SD card not to mount properly.  This appears intermitent.
   {
     Serial.println("Card Mount Failed");
     return;
