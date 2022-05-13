@@ -18,8 +18,7 @@
 #define ID_BYTE               0xAA
 #define EEPROM_SIZE           0x0F
 
-#define TIME_TO_SLEEP  5            //time ESP32 will go to sleep (in seconds)
-#define uS_TO_S_FACTOR 1000000ULL   //conversion factor for micro seconds to seconds */
+#define LOOP_DELAY  5000
 
 uint16_t nextImageNumber = 0;
 
@@ -29,9 +28,26 @@ void setup()
   Serial.println();
   Serial.println("Booting...");
 
-  pinMode(4, INPUT);              //GPIO for LED flash
-  digitalWrite(4, LOW);
-  rtc_gpio_hold_dis(GPIO_NUM_4);  //disable pin hold if it was enabled before sleeping
+  ////////////////////////////////////////////////////////
+  // SD Card Set Up
+  ////////////////////////////////////////////////////////
+  
+  SD_MMC.begin("/sdcard", true);
+  uint8_t cardType = SD_MMC.cardType();
+
+  if(cardType == CARD_NONE)
+  {
+    Serial.println("No SD card attached");
+    return;
+  }
+  else
+  {
+    Serial.println("SD card mounted OK");
+  }
+
+  ////////////////////////////////////////////////////////
+  // Camera Set Up
+  ////////////////////////////////////////////////////////
   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -55,46 +71,26 @@ void setup()
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   
-  //init with high specs to pre-allocate larger buffers
   config.frame_size = FRAMESIZE_UXGA;
   config.jpeg_quality = 10;
   config.fb_count = 2;
 
-  int i = 0;
-  uint8_t cardType;
-  
-  while (cardType == CARD_NONE && i < 10)
-  {
-    try {
-      SD_MMC.begin("/sdcard", true);
-      delay(500);
-      cardType = SD_MMC.cardType();
-    }
-    catch(...) {
-    }
-
-    i++;
-  }
-
-  if(cardType == CARD_NONE)
-  {
-    Serial.println("No SD card attached");
-    return;
-  }
-  
-  
   //initialize camera
   esp_err_t err = esp_camera_init(&config);
   delay(3000);  // Essential to give the camera time to properly initialise.  Otherwise the white balance is all wrong!
+  
   if (err != ESP_OK) 
   {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
 
-
-
-  //initialize EEPROM & get file number
+  
+  ////////////////////////////////////////////////////////
+  // Image Counter Set Up
+  ////////////////////////////////////////////////////////
+  
+  //initialize EEPROMr
   if (!EEPROM.begin(EEPROM_SIZE))
   {
     Serial.println("Failed to initialise EEPROM"); 
@@ -115,22 +111,27 @@ void setup()
   while(1);
   */
   /*ERASE EEPROM BYTES END*/  
+ 
+}
+
+void loop() 
+{
 
   if(EEPROM.read(ID_ADDRESS) != ID_BYTE)    //there will not be a valid picture number
-  {
-    Serial.println("Initializing ID byte & restarting picture count");
-    nextImageNumber = 0;
-    EEPROM.write(ID_ADDRESS, ID_BYTE);  
-    EEPROM.commit(); 
-  }
-  else                                      //obtain next picture number
-  {
-    EEPROM.get(COUNT_ADDRESS, nextImageNumber);
-    nextImageNumber +=  1;    
-    Serial.print("Next image number:");
-    Serial.println(nextImageNumber);
-  }
-
+    {
+      Serial.println("Initializing ID byte & restarting picture count");
+      nextImageNumber = 0;
+      EEPROM.write(ID_ADDRESS, ID_BYTE);  
+      EEPROM.commit(); 
+    }
+    else                                      //obtain next picture number
+    {
+      EEPROM.get(COUNT_ADDRESS, nextImageNumber);
+      nextImageNumber +=  1;    
+      Serial.print("Next image number:");
+      Serial.println(nextImageNumber);
+    }
+  
   //take new image
   camera_fb_t * fb = NULL;
   //obtain camera frame buffer
@@ -141,45 +142,36 @@ void setup()
     Serial.println("Exiting now"); 
     while(1);   //wait here as something is not right
   }
+  else
+  {
+    Serial.println("Camera picture in buffer");
+  }
 
-  //save to SD card
   //generate file path
   String path = "/IMG" + String(nextImageNumber) + ".jpg";
     
+  //save to SD card
   fs::FS &fs = SD_MMC;
-
-  //create new file
   File file = fs.open(path.c_str(), FILE_WRITE);
-  if(!file)
+  if(file)
   {
-    Serial.println("Failed to create file");
-    Serial.println("Exiting now"); 
-    while(1);   //wait here as something is not right    
+    file.write(fb->buf, fb->len);
+    EEPROM.put(COUNT_ADDRESS, nextImageNumber);
+    EEPROM.commit(); 
   } 
   else 
   {
-    file.write(fb->buf, fb->len); 
-    EEPROM.put(COUNT_ADDRESS, nextImageNumber);
-    EEPROM.commit();
+    Serial.println("Failed to create file");
+    Serial.println("Exiting now"); 
+    while(1);   //wait here as something is not right   
   }
   file.close();
 
-  //return camera frame buffer
   esp_camera_fb_return(fb);
   Serial.printf("Image saved: %s\n", path.c_str());
 
-  pinMode(4, OUTPUT);              //GPIO for LED flash
-  digitalWrite(4, LOW);            //turn OFF flash LED
-  rtc_gpio_hold_en(GPIO_NUM_4);    //make sure flash is held LOW in sleep
-  delay(500);
-  Serial.println("Entering deep sleep mode");
+  // Flush Serial, wait, loop
   Serial.flush(); 
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  esp_deep_sleep_start();
-}
-
-void loop() 
-{
-
+  delay(LOOP_DELAY);
 
 }
