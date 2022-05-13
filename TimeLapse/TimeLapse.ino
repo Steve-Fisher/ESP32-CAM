@@ -21,6 +21,7 @@
 #define LOOP_DELAY  5000
 
 uint16_t nextImageNumber = 0;
+bool goodSetup = false;
 
 void setup() 
 {
@@ -111,11 +112,15 @@ void setup()
   while(1);
   */
   /*ERASE EEPROM BYTES END*/  
+
+  goodSetup = true;
  
 }
 
 void loop() 
 {
+  
+  if(!goodSetup) return;
 
   if(EEPROM.read(ID_ADDRESS) != ID_BYTE)    //there will not be a valid picture number
     {
