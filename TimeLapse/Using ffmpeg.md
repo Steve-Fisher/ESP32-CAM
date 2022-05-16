@@ -38,3 +38,23 @@ ffmpeg -r 25 -f image2 -s 1600x1200 -i IMG%d.jpg -vcodec libx264 -crf 25  -pix_f
 * It produces a blank black video without the pix_fmt
 * -vf "transpose=1" rotates the video clockwise.  (See https://ostechnix.com/how-to-rotate-videos-using-ffmpeg-from-commandline/)
 * -s appears to be the input resolution (not output).  Use scale in -vf to re-scale output video.  Note, the width:height is *after* the transpose.
+
+To get the correct image file sequence number requires re-naming the files.  Windows sorts files alphaetically, whereas we need to sort based on some (incorrect) sequence number.  Therefore, need to use a python script to do this renaming:
+```python
+import os
+
+FILE_START = 'IMG'
+FILE_END = '.jpg'
+
+files = [ f for f in os.listdir('.') if f.startswith(FILE_START) and f.endswith(FILE_END)]
+nums = [int(file.replace(FILE_END, '').replace(FILE_START, '')) for file in files]
+nums.sort()
+
+i = 1
+for num in nums:
+    old_name = FILE_START + str(num) + FILE_END
+    new_name = FILE_START + str(i) + FILE_END
+    os.rename(old_name, new_name)
+    print(f'{old_name} becomes {new_name}')
+    i=i+1
+``` 

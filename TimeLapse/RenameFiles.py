@@ -5,6 +5,7 @@ FILE_END = '.jpg'
 
 files = [ f for f in os.listdir('.') if f.startswith(FILE_START) and f.endswith(FILE_END)]
 nums = [int(file.replace(FILE_END, '').replace(FILE_START, '')) for file in files]
+nums.sort()
 
 i = 1
 for num in nums:
