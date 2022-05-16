@@ -11,14 +11,13 @@
 #include "esp_camera.h"
 #include "SD_MMC.h"
 #include "EEPROM.h"
-//#include "driver/rtc_io.h"
 
 #define ID_ADDRESS            0x00
 #define COUNT_ADDRESS         0x01
 #define ID_BYTE               0xAA
 #define EEPROM_SIZE           0x0F
 
-#define TIME_TO_SLEEP  5            //time ESP32 will go to sleep (in seconds)
+#define TIME_TO_SLEEP  60            //time ESP32 will go to sleep (in seconds)
 #define uS_TO_S_FACTOR 1000000ULL   //conversion factor for micro seconds to seconds */
 
 uint16_t nextImageNumber = 0;
@@ -29,10 +28,6 @@ void setup()
   Serial.println();
   Serial.println("Booting...");
 
-//  pinMode(4, INPUT);              //GPIO for LED flash
-//  digitalWrite(4, LOW);
-//  rtc_gpio_hold_dis(GPIO_NUM_4);  //disable pin hold if it was enabled before sleeping
-  
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -69,7 +64,6 @@ void setup()
     return;
   }
   
-  
   //initialize camera
   esp_err_t err = esp_camera_init(&config);
   delay(3000);  // Essential to give the camera time to properly initialise.  Otherwise the white balance is all wrong!
@@ -78,8 +72,6 @@ void setup()
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
-
-
 
   //initialize EEPROM & get file number
   if (!EEPROM.begin(EEPROM_SIZE))
@@ -118,7 +110,7 @@ void setup()
     Serial.println(nextImageNumber);
   }
 
-  //take new image
+  // take new image
   camera_fb_t * fb = NULL;
   //obtain camera frame buffer
   fb = esp_camera_fb_get();
@@ -155,14 +147,13 @@ void setup()
   esp_camera_fb_return(fb);
   Serial.printf("Image saved: %s\n", path.c_str());
 
-//  pinMode(4, OUTPUT);              //GPIO for LED flash
-//  digitalWrite(4, LOW);            //turn OFF flash LED
-//  rtc_gpio_hold_en(GPIO_NUM_4);    //make sure flash is held LOW in sleep
   delay(500);
   Serial.println("Entering deep sleep mode");
   Serial.flush(); 
+
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
   esp_deep_sleep_start();
+  
 }
 
 void loop() 
