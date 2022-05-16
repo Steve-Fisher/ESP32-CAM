@@ -11,7 +11,7 @@
 #include "esp_camera.h"
 #include "SD_MMC.h"
 #include "EEPROM.h"
-#include "driver/rtc_io.h"
+//#include "driver/rtc_io.h"
 
 #define ID_ADDRESS            0x00
 #define COUNT_ADDRESS         0x01
@@ -29,9 +29,9 @@ void setup()
   Serial.println();
   Serial.println("Booting...");
 
-  pinMode(4, INPUT);              //GPIO for LED flash
-  digitalWrite(4, LOW);
-  rtc_gpio_hold_dis(GPIO_NUM_4);  //disable pin hold if it was enabled before sleeping
+//  pinMode(4, INPUT);              //GPIO for LED flash
+//  digitalWrite(4, LOW);
+//  rtc_gpio_hold_dis(GPIO_NUM_4);  //disable pin hold if it was enabled before sleeping
   
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -39,7 +39,7 @@ void setup()
   config.pin_d0 = 5;
   config.pin_d1 = 18;
   config.pin_d2 = 19;
-  config.pin_d3 = 25;
+  config.pin_d3 = 21;
   config.pin_d4 = 36;
   config.pin_d5 = 39;
   config.pin_d6 = 34;
@@ -60,25 +60,12 @@ void setup()
   config.jpeg_quality = 10;
   config.fb_count = 2;
 
-  int i = 0;
-  uint8_t cardType;
+  SD_MMC.begin("/sdcard", true);
+  uint8_t cardType = SD_MMC.cardType();
   
-  while (cardType == CARD_NONE && i < 10)
-  {
-    try {
-      SD_MMC.begin("/sdcard", true);
-      delay(500);
-      cardType = SD_MMC.cardType();
-    }
-    catch(...) {
-    }
-
-    i++;
-  }
-
   if(cardType == CARD_NONE)
   {
-    Serial.println("No SD card attached");
+    Serial.println("SD failed to mount");
     return;
   }
   
@@ -168,9 +155,9 @@ void setup()
   esp_camera_fb_return(fb);
   Serial.printf("Image saved: %s\n", path.c_str());
 
-  pinMode(4, OUTPUT);              //GPIO for LED flash
-  digitalWrite(4, LOW);            //turn OFF flash LED
-  rtc_gpio_hold_en(GPIO_NUM_4);    //make sure flash is held LOW in sleep
+//  pinMode(4, OUTPUT);              //GPIO for LED flash
+//  digitalWrite(4, LOW);            //turn OFF flash LED
+//  rtc_gpio_hold_en(GPIO_NUM_4);    //make sure flash is held LOW in sleep
   delay(500);
   Serial.println("Entering deep sleep mode");
   Serial.flush(); 
