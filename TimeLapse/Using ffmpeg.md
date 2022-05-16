@@ -31,9 +31,10 @@ Taken from: https://hamelot.io/visualization/using-ffmpeg-to-convert-a-set-of-im
 ffmpeg doesn't have an option to start image sequences from anything other than 1!
 
 ```shell
-ffmpeg -r 25 -f image2 -s 1600x1200 -i IMG%d.jpg -vcodec libx264 -crf 25  -pix_fmt yuv420p -vf "transpose=1" test1.mp4
+ffmpeg -r 25 -f image2 -s 1600x1200 -i IMG%d.jpg -vcodec libx264 -crf 25  -pix_fmt yuv420p -vf "transpose=1, scale=300:400" test1.mp4
 ```
 
 * %d specifies non-padded number (1, 2, 3 ... 8, 9, 10, 11, 12 ... 98, 99, 100, 101, 102 ...)
 * It produces a blank black video without the pix_fmt
 * -vf "transpose=1" rotates the video clockwise.  (See https://ostechnix.com/how-to-rotate-videos-using-ffmpeg-from-commandline/)
+* -s appears to be the input resolution (not output).  Use scale in -vf to re-scale output video.  Note, the width:height is *after* the transpose.
