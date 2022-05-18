@@ -59,3 +59,13 @@ for num in nums:
     print(f'{old_name} becomes {new_name}')
     i=i+1
 ``` 
+
+## OpenCV in Python
+Create a venv:
+```
+python -m venv C:\Python\Python310\images
+```
+Activate the venv:
+```
+C:\Python\Python310\images\Scripts\activate.bat
+```
